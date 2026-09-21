@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spend-tracker-backend"
+version = "0.1.0"
+description = "Authenticated spend tracker REST API"
+requires-python = "==3.12.2"
+dependencies = [
+  "Django==5.2.17",
+  "django-cors-headers==4.9.0",
+  "djangorestframework==3.17.2",
+  "djangorestframework-simplejwt==5.5.1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest==9.1.1",
+  "pytest-django==4.14.0",
+  "ruff==0.13.2",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["apps*", "config*"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "--strict-config --strict-markers"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+extend-exclude = ["migrations"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "DJ"]
+
+[tool.ruff.format]
+quote-style = "double"

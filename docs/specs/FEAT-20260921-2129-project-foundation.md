@@ -1,6 +1,6 @@
 # FEAT-20260921-2129 — Project foundation
 
-- **Status:** Approved
+- **Status:** Implemented
 - **Working branch:** `main`
 - **Base branch:** `main`
 - **ADR:** `docs/adr/0001-django-nextjs-jwt-architecture.md`

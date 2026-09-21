@@ -1,3 +1,36 @@
 # Local agent instructions must never be committed.
 AGENTS.md
 
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+*.egg-info/
+
+# Django and local data
+*.sqlite3
+media/
+staticfiles/
+
+# Node and Next.js
+node_modules/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+
+# Tooling and OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
