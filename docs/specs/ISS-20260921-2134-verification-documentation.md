@@ -1,6 +1,6 @@
 # ISS-20260921-2134 — Verification and submission documentation
 
-- **Status:** Approved
+- **Status:** Implemented
 - **Working branch:** `main`
 - **Base branch:** `main`
 - **Depends on:** All approved feature items
@@ -79,3 +79,24 @@ The README must not contain secrets, raw tokens, local absolute paths, or claims
 ## Commit boundary
 
 One final verification/documentation commit will contain README and verification-only adjustments, plus the in-place completion of this TODO item. Any functional defect discovered here belongs to its owning feature or a newly approved tracked item rather than being silently patched into the documentation commit.
+
+## Verification results
+
+- Reinstalled the locked Python and npm dependencies inside the project, then confirmed `pip check`, `npm ls`, and `npm audit --audit-level=high` succeed; npm reports zero vulnerabilities.
+- Ran the root verification command: Ruff lint and formatting, 91 backend tests, Django system and migration-drift checks, ESLint, TypeScript, 53 frontend tests, and the Next.js production build all pass.
+- Migrated every app from zero into a disposable SQLite database under production settings, then passed Django's deployment checks with explicit secure environment values. The disposable and smoke databases were removed afterward.
+- Started the built frontend and Django server together. A live HTTP smoke session verified the frontend registration route, registration, login, expense creation, category/date filtering, monthly summary, cookie-backed token refresh and `/auth/me` restoration, logout, and rejection of refresh after logout. No controllable browser was available in the execution environment, so UI transitions are covered by the component integration suite rather than an additional browser runner.
+- Confirmed the GitHub repository is public at `deaxparadox/infycon-assignment-spend-tracker`, the working tree contains no generated database or secret, and no `AGENTS.md` file is tracked.
+- Followed the README install and check commands using Python 3.12.2, Node.js 22.18.0, and npm 11.19.1.
+
+## Recursive verification results
+
+### Lateral spread
+
+Searched all backend queries and aggregates: every expense read is owner-scoped before filtering or grouping, and creates assign the authenticated owner. Searched all API views and confirmed protected views declare `IsAuthenticated`, while only the named authentication lifecycle endpoints use `AllowAny`.
+
+Searched backend and frontend code for float fields/conversions, JavaScript number parsing, storage/log token persistence, duplicated category or money formatting, cookie mutation, ad hoc response envelopes, and component-only filter/month state. Monetary values remain integer minor units or boundary strings; category normalization, output formatting, cookie handling, and API error normalization each have one owning module; tokens are not persisted or logged; filter/month view state comes from the URL.
+
+### Causal depth
+
+Mapped each assignment requirement and approved authentication, money, summary, and routing decision to implementation, automated tests, live smoke coverage, and README instructions. The check includes non-happy paths for invalid inputs and query shapes, missing/expired sessions, CSRF/origin enforcement, refresh reuse, user isolation, database constraints, calendar boundaries, percentage rounding, zero baselines, strict insight thresholds, URL restoration, loading/empty/error states, and clean migration/startup behavior. No additional contributing requirement was found within the inspected scope.
