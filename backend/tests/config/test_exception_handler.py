@@ -18,3 +18,16 @@ def test_validation_errors_use_shared_envelope() -> None:
             "fields": {"email": ["This field is required."]},
         }
     }
+
+
+def test_unexpected_errors_use_safe_shared_envelope() -> None:
+    response = api_exception_handler(RuntimeError("sensitive internal detail"), {})
+
+    assert response is not None
+    assert response.status_code == 500
+    assert response.data == {
+        "error": {
+            "code": "server_error",
+            "message": "An unexpected error occurred.",
+        }
+    }

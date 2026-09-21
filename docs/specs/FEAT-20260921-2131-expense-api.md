@@ -1,6 +1,6 @@
 # FEAT-20260921-2131 — Expense persistence and API
 
-- **Status:** Approved
+- **Status:** Implemented
 - **Working branch:** `main`
 - **Base branch:** `main`
 - **Depends on:** `FEAT-20260921-2129`, `FEAT-20260921-2130`
@@ -90,3 +90,13 @@ Confirm the API satisfies persistence, exact money handling, validation, filteri
 ## Commit boundary
 
 One expense API commit will contain the model/migration, shared money boundary helpers, serializers, selectors/services, routes, tests, and the in-place completion of this TODO item.
+
+## Verification results
+
+### Lateral spread
+
+Source searches confirmed that all amount conversion lives in the shared money boundary, with no float or decimal business calculations elsewhere. Expense reads are owner-scoped in one selector, writes always take the owner from the authenticated request, and creation, filtering, model saves, and later summaries share the same category canonicalization function.
+
+### Causal depth
+
+Tests cover durable minor-unit persistence, exact formatting, the documented upper bound, the independent database range constraints, public-field validation, category normalization, inclusive and independent date filters, repeated and malformed query parameters, stable pagination, authentication, and cross-user isolation. The shared exception handler also now returns the required safe envelope for unexpected API failures.

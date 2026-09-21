@@ -5,13 +5,22 @@ from __future__ import annotations
 from typing import Any
 
 from rest_framework.response import Response
+from rest_framework.status import HTTP_500_INTERNAL_SERVER_ERROR
 from rest_framework.views import exception_handler
 
 
 def api_exception_handler(exc: Exception, context: dict[str, Any]) -> Response | None:
     response = exception_handler(exc, context)
     if response is None:
-        return None
+        return Response(
+            {
+                "error": {
+                    "code": "server_error",
+                    "message": "An unexpected error occurred.",
+                }
+            },
+            status=HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
     detail = response.data
     fields: dict[str, Any] | None = None
