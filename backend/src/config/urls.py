@@ -18,8 +18,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
+from apps.expenses.summary_views import SummaryView
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("auth/", include("apps.accounts.urls")),
     path("expenses", include("apps.expenses.urls")),
+    path("summary", SummaryView.as_view(), name="summary"),
 ]

@@ -1,6 +1,6 @@
 # FEAT-20260921-2132 — Monthly summary and insights
 
-- **Status:** Approved
+- **Status:** Implemented
 - **Working branch:** `main`
 - **Base branch:** `main`
 - **Depends on:** `FEAT-20260921-2131`
@@ -84,3 +84,13 @@ Confirm the summary covers all assignment outputs, empty-data semantics, zero ba
 ## Commit boundary
 
 One summary commit will contain selectors, service logic, serializers, route, tests, and the in-place completion of this TODO item. Frontend presentation remains separate.
+
+## Verification results
+
+### Lateral spread
+
+Every summary aggregate begins with the authenticated owner and uses the same half-open `>= start, < end` range convention. Source scans found no floating-point calculations or major-unit arithmetic; `Decimal` appears only in the percentage service and serializer, while all monetary totals and category maps remain integers until the shared amount formatter.
+
+### Causal depth
+
+Tests cover all required summary outputs, empty and zero-baseline semantics, user isolation, January/December, leap February, 30/31-day boundaries, positive, negative, zero, and half-up fractional percentages, the strict insight threshold, new-category spending, deterministic ordering, and exactly two grouped aggregate queries.
