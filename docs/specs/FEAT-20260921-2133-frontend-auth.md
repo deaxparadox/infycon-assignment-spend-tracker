@@ -1,6 +1,6 @@
 # FEAT-20260921-2133 — Frontend authentication and routed shell
 
-- **Status:** Approved
+- **Status:** Implemented
 - **Working branch:** `main`
 - **Base branch:** `main`
 - **Depends on:** `FEAT-20260921-2129`, `FEAT-20260921-2130`
@@ -83,3 +83,13 @@ Confirm login, registration, session restoration, expiry recovery, concurrency, 
 ## Commit boundary
 
 One frontend-auth commit will contain routed auth pages, provider/state machine, protected shell, API client refresh coordination, tests, and the in-place completion of this TODO item.
+
+## Verification results
+
+### Lateral spread
+
+Source-wide searches found no production use of local storage, session storage, IndexedDB, JavaScript-readable auth cookies, token logging, or direct fetch calls outside the shared API client. All protected pages are nested under the one protected route-group layout, all programmatic `next` navigation passes through the local-path validator, and refresh coordination exists only in the API client.
+
+### Causal depth
+
+Tests cover authenticated, anonymous, and retryable-error startup states; memory-only token handling; backend field/general form errors; registration without token assumptions; delayed protected-route redirect; safe redirect validation; shared concurrent refresh; one retry; auth-route non-recursion; terminal refresh clearing; cancellation preservation; cookie credentials; and explicit logout. The production build verifies root, auth, protected, loading, error, and not-found route conventions.

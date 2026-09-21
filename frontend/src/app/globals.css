@@ -25,3 +25,86 @@ textarea {
 a {
   color: inherit;
 }
+
+body {
+  line-height: 1.5;
+}
+
+button,
+input {
+  border: 1px solid #b9bac1;
+  border-radius: 0.35rem;
+  padding: 0.6rem 0.75rem;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.auth-layout,
+.status-panel {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 2rem;
+}
+
+.auth-card {
+  width: min(100%, 28rem);
+  border: 1px solid #dedee3;
+  border-radius: 0.75rem;
+  background: white;
+  padding: 2rem;
+}
+
+.auth-card form {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.auth-card form button {
+  margin-top: 0.75rem;
+}
+
+.form-error,
+.field-error {
+  color: #9d1c1c;
+}
+
+.success-message {
+  color: #176b35;
+}
+
+.app-shell header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid #dedee3;
+  background: white;
+  padding: 1rem 1.5rem;
+}
+
+.app-shell nav,
+.account-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.brand {
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.app-shell main {
+  width: min(100% - 2rem, 70rem);
+  margin: 0 auto;
+  padding: 2rem 0;
+}
