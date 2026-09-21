@@ -1,6 +1,6 @@
 # FEAT-20260921-2130 — Authentication
 
-- **Status:** Approved
+- **Status:** Implemented
 - **Working branch:** `main`
 - **Base branch:** `main`
 - **Depends on:** `FEAT-20260921-2129`
@@ -93,3 +93,13 @@ Confirm authentication covers identity, authorization, cross-user isolation prer
 ## Commit boundary
 
 One authentication commit will include backend endpoints, token/cookie configuration, migrations required by the blacklist app, tests, and the in-place completion of this TODO item. Frontend session state remains in its later item.
+
+## Verification results
+
+### Lateral spread
+
+All six auth routes were reviewed for explicit authentication and permission policies. Refresh-cookie writes and deletion are centralized, every email lookup uses the normalized custom user identity, and source searches found no logging or response path that exposes passwords or refresh tokens. The same configuration review found and removed implicit production defaults for token lifetime and cookie behavior.
+
+### Causal depth
+
+The test suite covers identity creation, authorization, access-token failures, refresh restoration, expiry, rotation reuse, deleted users, logout invalidation, CSRF tokens, trusted origins, and secure cookie attributes. Browser memory state and coordinated concurrent refresh remain intentionally assigned to the approved frontend-authentication item.

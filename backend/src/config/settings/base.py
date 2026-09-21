@@ -33,16 +33,39 @@ def boolean_env(name: str) -> bool:
     return value == "true"
 
 
+def positive_int_env(name: str) -> int:
+    value = required_env(name)
+    try:
+        parsed = int(value)
+    except ValueError as exc:
+        raise ImproperlyConfigured(f"Environment variable {name} must be an integer.") from exc
+    if parsed <= 0:
+        raise ImproperlyConfigured(f"Environment variable {name} must be greater than zero.")
+    return parsed
+
+
+def nonnegative_int_env(name: str) -> int:
+    value = required_env(name)
+    try:
+        parsed = int(value)
+    except ValueError as exc:
+        raise ImproperlyConfigured(f"Environment variable {name} must be an integer.") from exc
+    if parsed < 0:
+        raise ImproperlyConfigured(f"Environment variable {name} cannot be negative.")
+    return parsed
+
+
 SECRET_KEY = required_env("DJANGO_SECRET_KEY")
 DEBUG = False
 ALLOWED_HOSTS = csv_env("DJANGO_ALLOWED_HOSTS")
 FRONTEND_ORIGIN = required_env("FRONTEND_ORIGIN").rstrip("/")
 SECURE_SSL_REDIRECT = boolean_env("DJANGO_SECURE_SSL_REDIRECT")
-SECURE_HSTS_SECONDS = int(required_env("DJANGO_SECURE_HSTS_SECONDS"))
+SECURE_HSTS_SECONDS = nonnegative_int_env("DJANGO_SECURE_HSTS_SECONDS")
 SECURE_HSTS_INCLUDE_SUBDOMAINS = SECURE_HSTS_SECONDS > 0
 SECURE_HSTS_PRELOAD = SECURE_HSTS_SECONDS > 0
 SESSION_COOKIE_SECURE = boolean_env("SESSION_COOKIE_SECURE")
 CSRF_COOKIE_SECURE = boolean_env("CSRF_COOKIE_SECURE")
+CSRF_COOKIE_SAMESITE = required_env("CSRF_COOKIE_SAMESITE")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -131,25 +154,33 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=int(os.environ.get("ACCESS_TOKEN_MINUTES", "10"))),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=int(os.environ.get("REFRESH_TOKEN_DAYS", "7"))),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=positive_int_env("ACCESS_TOKEN_MINUTES")),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=positive_int_env("REFRESH_TOKEN_DAYS")),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "UPDATE_LAST_LOGIN": False,
 }
 
-REFRESH_COOKIE_NAME = os.environ.get("REFRESH_COOKIE_NAME", "refresh_token")
-REFRESH_COOKIE_PATH = os.environ.get("REFRESH_COOKIE_PATH", "/auth/")
-REFRESH_COOKIE_SAMESITE = os.environ.get("REFRESH_COOKIE_SAMESITE", "Lax")
+REFRESH_COOKIE_NAME = required_env("REFRESH_COOKIE_NAME")
+REFRESH_COOKIE_PATH = required_env("REFRESH_COOKIE_PATH")
+REFRESH_COOKIE_SAMESITE = required_env("REFRESH_COOKIE_SAMESITE")
 REFRESH_COOKIE_SECURE = boolean_env("REFRESH_COOKIE_SECURE")
 
-if REFRESH_COOKIE_SAMESITE not in {"Lax", "Strict", "None"}:
-    raise ImproperlyConfigured("REFRESH_COOKIE_SAMESITE must be one of Lax, Strict, or None.")
+for setting_name, same_site in {
+    "REFRESH_COOKIE_SAMESITE": REFRESH_COOKIE_SAMESITE,
+    "CSRF_COOKIE_SAMESITE": CSRF_COOKIE_SAMESITE,
+}.items():
+    if same_site not in {"Lax", "Strict", "None"}:
+        raise ImproperlyConfigured(f"{setting_name} must be one of Lax, Strict, or None.")
 if REFRESH_COOKIE_SAMESITE == "None" and not REFRESH_COOKIE_SECURE:
     raise ImproperlyConfigured(
         "REFRESH_COOKIE_SECURE must be true when REFRESH_COOKIE_SAMESITE is None."
     )
+if CSRF_COOKIE_SAMESITE == "None" and not CSRF_COOKIE_SECURE:
+    raise ImproperlyConfigured("CSRF_COOKIE_SECURE must be true when CSRF_COOKIE_SAMESITE is None.")
 if SECURE_SSL_REDIRECT and not all(
     (REFRESH_COOKIE_SECURE, SESSION_COOKIE_SECURE, CSRF_COOKIE_SECURE)
 ):
     raise ImproperlyConfigured("Secure deployments must secure refresh, session, and CSRF cookies.")
+
+CSRF_FAILURE_VIEW = "config.csrf.csrf_failure"
