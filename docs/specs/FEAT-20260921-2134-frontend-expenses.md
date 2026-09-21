@@ -1,6 +1,6 @@
 # FEAT-20260921-2134 — Frontend expense and summary experience
 
-- **Status:** Approved
+- **Status:** Implemented
 - **Working branch:** `main`
 - **Base branch:** `main`
 - **Depends on:** `FEAT-20260921-2131`, `FEAT-20260921-2132`, `FEAT-20260921-2133`
@@ -84,3 +84,12 @@ Confirm every required end-to-end action works after refresh and browser navigat
 ## Commit boundary
 
 One frontend-expense commit will contain routed pages, feature components, URL state, formatter, tests, and the in-place completion of this TODO item.
+
+## Implementation verification
+
+- Added routed expense creation, URL-backed listing filters and pagination, and URL-backed monthly summary selection.
+- Kept amount input and API output as strings and centralized string-only amount validation and formatting.
+- Added explicit loading, empty, validation, authentication, server, and network states plus retry behavior for retryable failures.
+- Verified with ESLint, TypeScript, 53 Vitest tests, and a Next.js production build.
+- **Lateral spread:** searched all frontend TypeScript for `Number`, `parseFloat`, `parseInt`, `BigInt`, and arithmetic involving amount values. No monetary conversion or arithmetic was found; the only numeric arithmetic in the expense views operates on pagination metadata. Also checked request and navigation usage; expense filters and the selected month are derived from URLs, while API calls remain centralized through the authenticated client.
+- **Causal depth:** component tests cover direct URL initialization, URL updates, filter-preserving pagination, success navigation, loading, both empty states, validation, authentication, server, and network failures. Server-rendered route props recreate the same query-backed view on refresh; no required view state depends only on a live React session.

@@ -1,11 +1,11 @@
-import Link from "next/link";
+import { ExpenseListView } from "@/features/expenses/expense-list-view";
+import { serializeSearchParams, type PageSearchParams } from "@/lib/url/search-params";
 
-export default function ExpensesPage() {
-  return (
-    <section>
-      <h1>Expenses</h1>
-      <p>Your expense history will appear here.</p>
-      <Link href="/expenses/new">Add an expense</Link>
-    </section>
-  );
+export default async function ExpensesPage({
+  searchParams,
+}: {
+  searchParams: Promise<PageSearchParams>;
+}) {
+  const queryString = serializeSearchParams(await searchParams);
+  return <ExpenseListView key={queryString} queryString={queryString} />;
 }

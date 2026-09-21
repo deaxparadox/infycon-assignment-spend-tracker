@@ -37,6 +37,13 @@ input {
   padding: 0.6rem 0.75rem;
 }
 
+textarea {
+  min-height: 6rem;
+  border: 1px solid #b9bac1;
+  border-radius: 0.35rem;
+  padding: 0.6rem 0.75rem;
+}
+
 button {
   cursor: pointer;
 }
@@ -107,4 +114,116 @@ button:disabled {
   width: min(100% - 2rem, 70rem);
   margin: 0 auto;
   padding: 2rem 0;
+}
+
+.section-heading,
+.pagination,
+.category-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.button-link {
+  border: 1px solid #171719;
+  border-radius: 0.35rem;
+  padding: 0.6rem 0.75rem;
+  text-decoration: none;
+}
+
+.content-card,
+.metric-card,
+.filter-form,
+.view-message {
+  border: 1px solid #dedee3;
+  border-radius: 0.65rem;
+  background: white;
+  padding: 1rem;
+}
+
+.expense-form {
+  display: grid;
+  max-width: 34rem;
+  gap: 0.5rem;
+}
+
+.expense-form p {
+  margin: 0;
+  color: #9d1c1c;
+}
+
+.filter-form,
+.month-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+th,
+td {
+  border-bottom: 1px solid #dedee3;
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.metric-card h2,
+.metric-card p {
+  margin: 0;
+}
+
+.metric-card p {
+  margin-top: 0.5rem;
+  font-size: 1.35rem;
+}
+
+.category-list,
+.insight-list {
+  padding-left: 1.25rem;
+}
+
+.category-list li,
+.insight-list li {
+  margin: 0.5rem 0;
+}
+
+.view-message-validation,
+.view-message-authentication,
+.view-message-server,
+.view-message-network {
+  color: #7a1717;
+}
+
+@media (max-width: 700px) {
+  .section-heading,
+  .pagination,
+  .app-shell header,
+  .account-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .app-shell nav {
+    flex-wrap: wrap;
+  }
 }
