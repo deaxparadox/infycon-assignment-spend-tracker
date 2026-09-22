@@ -1,7 +1,7 @@
 export function getApiBaseUrl(
-  environment: Readonly<Record<string, string | undefined>> = process.env,
+  rawValue: string | undefined = process.env.NEXT_PUBLIC_API_URL,
 ): string {
-  const value = environment.NEXT_PUBLIC_API_URL?.trim();
+  const value = rawValue?.trim();
 
   if (!value) {
     throw new Error("NEXT_PUBLIC_API_URL is required.");
