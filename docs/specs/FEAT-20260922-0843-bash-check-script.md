@@ -1,6 +1,6 @@
 # FEAT-20260922-0843 — Bash verification script
 
-- **Status:** Approved
+- **Status:** Implemented
 - **Working branch:** `main`
 - **Base branch:** `main`
 
@@ -53,3 +53,22 @@ Confirm parity includes prerequisites, working directories, command order, exit 
 ## Commit boundary
 
 One coherent commit will contain `scripts/check.sh`, README verification documentation, spec completion, and in-place TODO completion.
+
+## Implementation results
+
+- Added a strict-mode Bash wrapper that resolves the repository relative to its own path, requires the frontend build URL, and never selects global Python implicitly.
+- Added explicit interpreter branches for Unix virtual environments and Windows virtual environments invoked through Git Bash.
+- Mirrored the PowerShell backend and frontend commands in the same order and isolated each working-directory change in a subshell.
+- Documented both wrapper invocations and their supported virtual-environment layouts.
+- Marked the script executable in Git.
+- Per direct instruction, the Bash wrapper, PowerShell wrapper, and all commands they contain were not executed.
+
+## Recursive check results
+
+### Lateral spread
+
+Repository script discovery found only `scripts/check.ps1` and the new `scripts/check.sh`. The README's manual backend/frontend lists use the same underlying commands, and its aggregate verification section now points to the two wrappers without introducing another helper or divergent sequence.
+
+### Causal depth
+
+Line-by-line source review confirmed parity for the required environment value, missing-virtual-environment failure, repository-relative paths, Ruff lint/format, pytest, Django system and migration-drift checks, frontend aggregate checks, command order, first-failure exit behavior, and both supported virtual-environment layouts. The script was intentionally not syntax-checked or run, so runtime shell compatibility remains unverified.

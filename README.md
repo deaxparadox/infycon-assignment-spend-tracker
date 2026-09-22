@@ -27,7 +27,8 @@ frontend/
   src/features/expenses/   expense and summary UI
   src/lib/                 API client, contracts, config, money, and URL helpers
 compose.yaml               portable local container topology
-scripts/check.ps1          complete local verification entry point
+scripts/check.ps1          PowerShell verification entry point
+scripts/check.sh           Bash verification entry point
 docs/                      approved architecture records and implementation specs
 ```
 
@@ -241,14 +242,25 @@ npm run test
 npm run build
 ```
 
-The root PowerShell check runs both suites. It requires the build-time API URL explicitly:
+The root wrappers run the same backend and frontend checks. Both require the build-time API URL explicitly.
+
+PowerShell:
 
 ```powershell
 $env:NEXT_PUBLIC_API_URL = "http://localhost:8000"
 .\scripts\check.ps1
 ```
 
-The application checks above passed before the later containerization work. Per the repository owner's instruction, the Dockerfiles and Compose topology were source-reviewed but were not built or executed.
+Bash on Linux, macOS, WSL, or Git Bash:
+
+```bash
+export NEXT_PUBLIC_API_URL="http://localhost:8000"
+./scripts/check.sh
+```
+
+The Bash wrapper uses `backend/.venv/bin/python` for a Unix virtual environment or `backend/.venv/Scripts/python.exe` for a Windows virtual environment used from Git Bash. It fails instead of falling back to a global Python interpreter.
+
+The application checks above passed before the later containerization work. Per the repository owner's instruction, the Dockerfiles, Compose topology, and Bash wrapper were source-reviewed but were not executed.
 
 ## Design decisions and trade-offs
 
