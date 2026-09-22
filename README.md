@@ -287,6 +287,28 @@ The live deployment for this assignment runs the frontend on Vercel and the back
 
 Because the frontend (Vercel) and backend (Render) are on different sites, not just different ports, the refresh and CSRF cookies must use `SameSite=None` with `Secure=true` in this deployment's environment variables (`REFRESH_COOKIE_SAMESITE`, `CSRF_COOKIE_SAMESITE`, and their `*_SECURE` counterparts); `SameSite=Lax`, which is fine for the single-host Compose stack where the frontend and backend only differ by port, would silently stop the browser from sending those cookies cross-site and break session persistence with no visible error.
 
+### Backend on Render (free tier)
+
+1. Create a Web Service from this repository with **Environment: Docker** and **Dockerfile path: `backend/Dockerfile`**.
+2. Render's free tier has no shell/console access and no Pre-Deploy Command, so migrations and seeding must run as part of the same start command. Override **Docker Command** with:
+   ```
+   sh -c "python manage.py migrate --noinput && python manage.py seed_demo_data && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --access-logfile - --error-logfile -"
+   ```
+   (Render injects `$PORT`; the Dockerfile's own `CMD` binds a fixed port instead, which Render can usually auto-detect but binding to `$PORT` explicitly removes the guesswork on a tier with no console to debug a failed deploy.)
+3. Set every variable from `backend/.env.example` as a Render environment variable, plus `DJANGO_SETTINGS_MODULE=config.settings.base`. Notable values for this deployment:
+   - `DJANGO_ALLOWED_HOSTS`: the Render service's `onrender.com` hostname.
+   - `FRONTEND_ORIGIN`: the exact Vercel production URL (scheme + host, no trailing slash).
+   - `SQLITE_PATH`: any writable path, e.g. `/app/src/db.sqlite3` — no volume needed given the reset-on-restart model above.
+   - `REFRESH_COOKIE_SAMESITE` / `CSRF_COOKIE_SAMESITE`: `None`.
+   - `REFRESH_COOKIE_SECURE` / `SESSION_COOKIE_SECURE` / `CSRF_COOKIE_SECURE`: `true`.
+   - `DJANGO_SECURE_SSL_REDIRECT`: `true` (safe now that `SECURE_PROXY_SSL_HEADER` is set — see the recursive checks above).
+   - `DEMO_ACCOUNT_PASSWORD` (optional): override the seeded demo login's default password.
+
+### Frontend on Vercel
+
+1. Import this repository with **Root Directory: `frontend`** — Vercel's Next.js preset handles the rest with zero configuration (`output: "standalone"` in `next.config.ts` is inert on Vercel; it only matters for the Docker/Compose path above).
+2. Set `NEXT_PUBLIC_API_URL` to the Render backend's public URL before the first build — it's inlined into the client bundle at build time, not read at runtime.
+
 ## AI-use disclosure
 
 I used OpenAI Codex to help plan the architecture, scaffold the projects, implement code, and propose tests and documentation.
