@@ -21,22 +21,9 @@ x-backend-environment: &backend-environment
   CSRF_COOKIE_SAMESITE: "${CSRF_COOKIE_SAMESITE:?Set CSRF_COOKIE_SAMESITE in .env}"
 
 services:
-  migrate:
-    build: *backend-build
-    image: spend-tracker-backend:local
-    command: ["sh", "-c", "python manage.py migrate --noinput && python manage.py seed_demo_data"]
-    environment: *backend-environment
-    init: true
-    restart: "no"
-    volumes:
-      - spend-tracker-data:/var/lib/spend-tracker
-
   backend:
     build: *backend-build
     image: spend-tracker-backend:local
-    depends_on:
-      migrate:
-        condition: service_completed_successfully
     environment: *backend-environment
     healthcheck:
       test:

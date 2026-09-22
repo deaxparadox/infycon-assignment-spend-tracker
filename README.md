@@ -26,7 +26,7 @@ frontend/
   src/features/auth/       session lifecycle and authentication UI
   src/features/expenses/   expense and summary UI
   src/lib/                 API client, contracts, config, money, and URL helpers
-compose.yaml               portable local container topology
+docker-compose.yaml        portable local container topology
 scripts/check.ps1          PowerShell verification entry point
 scripts/check.sh           Bash verification entry point
 docs/                      approved architecture records and implementation specs
@@ -100,7 +100,7 @@ Build and start all services:
 docker compose up --build
 ```
 
-Compose first runs migrations as a one-shot service, then starts the API after migration success, and finally starts the frontend after the API is healthy. Open `http://localhost:3000`; the API is exposed at `http://localhost:8000`.
+The backend image's entrypoint applies migrations, seeds the demo account, and starts Gunicorn on every start (this is also what runs on Render — see "Deployment notes" below); Compose starts the frontend only once that backend reports healthy. Open `http://localhost:3000`; the API is exposed at `http://localhost:8000`.
 
 Operational commands:
 
@@ -121,7 +121,7 @@ The backend and frontend run as non-root users inside their Linux images. Docker
 
 ## Configuration
 
-The root `.env.example` is the Compose contract. `compose.yaml` requires every interpolated value explicitly and uses the fixed internal database path `/var/lib/spend-tracker/db.sqlite3`.
+The root `.env.example` is the Compose contract. `docker-compose.yaml` requires every interpolated value explicitly and uses the fixed internal database path `/var/lib/spend-tracker/db.sqlite3`.
 
 `frontend/.env.example` contains the required public API origin:
 
@@ -290,11 +290,7 @@ Because the frontend (Vercel) and backend (Render) are on different sites, not j
 ### Backend on Render (free tier)
 
 1. Create a Web Service from this repository with **Environment: Docker** and **Dockerfile path: `backend/Dockerfile`**.
-2. Render's free tier has no shell/console access and no Pre-Deploy Command, so migrations and seeding must run as part of the same start command. Override **Docker Command** with:
-   ```
-   sh -c "python manage.py migrate --noinput && python manage.py seed_demo_data && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --access-logfile - --error-logfile -"
-   ```
-   (Render injects `$PORT`; the Dockerfile's own `CMD` binds a fixed port instead, which Render can usually auto-detect but binding to `$PORT` explicitly removes the guesswork on a tier with no console to debug a failed deploy.)
+2. No start command override is needed. Render's free tier has no shell/console access and no Pre-Deploy Command, so `backend/entrypoint.sh` (the image's `ENTRYPOINT`) applies migrations, seeds the demo account, and starts Gunicorn bound to Render's injected `$PORT` on every container start — the same self-contained sequence Compose runs locally.
 3. Set every variable from `backend/.env.example` as a Render environment variable, plus `DJANGO_SETTINGS_MODULE=config.settings.base`. Notable values for this deployment:
    - `DJANGO_ALLOWED_HOSTS`: the Render service's `onrender.com` hostname.
    - `FRONTEND_ORIGIN`: the exact Vercel production URL (scheme + host, no trailing slash).
