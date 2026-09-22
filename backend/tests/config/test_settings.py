@@ -1,7 +1,12 @@
 import pytest
+from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
 from config.settings.base import boolean_env, csv_env, positive_int_env, required_env
+
+
+def test_trusts_the_reverse_proxy_forwarded_proto_header():
+    assert settings.SECURE_PROXY_SSL_HEADER == ("HTTP_X_FORWARDED_PROTO", "https")
 
 
 def test_required_env_rejects_missing_value(monkeypatch):

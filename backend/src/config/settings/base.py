@@ -60,6 +60,10 @@ DEBUG = False
 ALLOWED_HOSTS = csv_env("DJANGO_ALLOWED_HOSTS")
 FRONTEND_ORIGIN = required_env("FRONTEND_ORIGIN").rstrip("/")
 SECURE_SSL_REDIRECT = boolean_env("DJANGO_SECURE_SSL_REDIRECT")
+# Render, and most PaaS reverse proxies, terminate TLS and forward plain HTTP
+# with this header set; without it, SECURE_SSL_REDIRECT sees every request as
+# insecure and redirects it, causing an infinite redirect loop behind the proxy.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_HSTS_SECONDS = nonnegative_int_env("DJANGO_SECURE_HSTS_SECONDS")
 SECURE_HSTS_INCLUDE_SUBDOMAINS = SECURE_HSTS_SECONDS > 0
 SECURE_HSTS_PRELOAD = SECURE_HSTS_SECONDS > 0
