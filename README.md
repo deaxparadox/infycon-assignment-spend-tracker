@@ -294,7 +294,7 @@ Because the frontend (Vercel) and backend (Render) are on different sites, not j
 3. Set every variable from `backend/.env.example` as a Render environment variable, plus `DJANGO_SETTINGS_MODULE=config.settings.base`. Notable values for this deployment:
    - `DJANGO_ALLOWED_HOSTS`: the Render service's `onrender.com` hostname.
    - `FRONTEND_ORIGIN`: the exact Vercel production URL (scheme + host, no trailing slash).
-   - `SQLITE_PATH`: `/tmp/spend-tracker/db.sqlite3` — no volume needed given the reset-on-restart model above. Use `/tmp`, not another image directory: it's world-writable (`rwxrwxrwt`, sticky bit) regardless of which UID Render actually runs the container as, whereas `/var/lib/spend-tracker` and `/app/src` are only writable by the exact `app` UID baked into the image at build time, which the runtime platform isn't guaranteed to preserve. `entrypoint.sh` creates the parent directory if it doesn't exist.
+   - `SQLITE_PATH`: any writable path, e.g. `/app/src/db.sqlite3` — no volume needed given the reset-on-restart model above.
    - `REFRESH_COOKIE_SAMESITE` / `CSRF_COOKIE_SAMESITE`: `None`.
    - `REFRESH_COOKIE_SECURE` / `SESSION_COOKIE_SECURE` / `CSRF_COOKIE_SECURE`: `true`.
    - `DJANGO_SECURE_SSL_REDIRECT`: `true` (safe now that `SECURE_PROXY_SSL_HEADER` is set — see the recursive checks above).

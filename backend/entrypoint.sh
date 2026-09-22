@@ -1,10 +1,6 @@
 #!/bin/sh
 set -e
 
-if [ "$SQLITE_PATH" != ":memory:" ]; then
-    mkdir -p "$(dirname "$SQLITE_PATH")"
-fi
-
 python manage.py migrate --noinput
 python manage.py seed_demo_data
 
