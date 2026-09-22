@@ -50,7 +50,7 @@ services:
       start_period: 10s
     init: true
     ports:
-      - "8000:8000"
+      - "8020:8000"
     restart: unless-stopped
     volumes:
       - spend-tracker-data:/var/lib/spend-tracker
@@ -79,7 +79,7 @@ services:
       start_period: 10s
     init: true
     ports:
-      - "3000:3000"
+      - "3020:3000"
     restart: unless-stopped
 
 volumes:

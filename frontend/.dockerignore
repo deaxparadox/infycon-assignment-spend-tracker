@@ -8,3 +8,5 @@
 !src/
 !src/**
 !tsconfig.json
+!vitest.config.mts
+!vitest.setup.ts
