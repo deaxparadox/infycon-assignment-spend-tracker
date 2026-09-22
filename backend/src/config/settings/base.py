@@ -5,11 +5,26 @@ from __future__ import annotations
 import os
 from datetime import timedelta
 from pathlib import Path
+from urllib.parse import parse_qs, unquote, urlparse
 
 from django.core.exceptions import ImproperlyConfigured
 
 SRC_DIR = Path(__file__).resolve().parents[2]
 BACKEND_DIR = SRC_DIR.parent
+
+
+def database_config_from_url(url: str) -> dict:
+    parsed = urlparse(url)
+    query = parse_qs(parsed.query)
+    return {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": parsed.path.lstrip("/"),
+        "USER": unquote(parsed.username or ""),
+        "PASSWORD": unquote(parsed.password or ""),
+        "HOST": parsed.hostname,
+        "PORT": parsed.port or 5432,
+        "OPTIONS": {key: values[0] for key, values in query.items()},
+    }
 
 
 def required_env(name: str) -> str:
@@ -116,18 +131,21 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
-database_name = required_env("SQLITE_PATH")
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": (
-            database_name
-            if database_name == ":memory:"
-            else Path(database_name).expanduser().resolve()
-        ),
+database_url = os.environ.get("DATABASE_URL", "").strip()
+if database_url:
+    DATABASES = {"default": database_config_from_url(database_url)}
+else:
+    database_name = required_env("SQLITE_PATH")
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": (
+                database_name
+                if database_name == ":memory:"
+                else Path(database_name).expanduser().resolve()
+            ),
+        }
     }
-}
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},

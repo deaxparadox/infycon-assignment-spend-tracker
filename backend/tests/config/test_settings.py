@@ -2,11 +2,41 @@ import pytest
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
-from config.settings.base import boolean_env, csv_env, positive_int_env, required_env
+from config.settings.base import (
+    boolean_env,
+    csv_env,
+    database_config_from_url,
+    positive_int_env,
+    required_env,
+)
 
 
 def test_trusts_the_reverse_proxy_forwarded_proto_header():
     assert settings.SECURE_PROXY_SSL_HEADER == ("HTTP_X_FORWARDED_PROTO", "https")
+
+
+def test_database_config_from_url_parses_a_neon_style_dsn():
+    config = database_config_from_url(
+        "postgresql://neondb_owner:p%40ss@ep-example-pooler.aws.neon.tech/neondb"
+        "?sslmode=require&channel_binding=require"
+    )
+
+    assert config == {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "neondb",
+        "USER": "neondb_owner",
+        "PASSWORD": "p@ss",
+        "HOST": "ep-example-pooler.aws.neon.tech",
+        "PORT": 5432,
+        "OPTIONS": {"sslmode": "require", "channel_binding": "require"},
+    }
+
+
+def test_database_config_from_url_defaults_the_port():
+    config = database_config_from_url("postgresql://user:pass@db.example.com/mydb")
+
+    assert config["PORT"] == 5432
+    assert config["OPTIONS"] == {}
 
 
 def test_required_env_rejects_missing_value(monkeypatch):
