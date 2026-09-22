@@ -143,6 +143,25 @@ describe("ApiClient", () => {
     ).rejects.toBe(abortError);
   });
 
+  it("does not lose Window binding when falling back to the global fetch", async () => {
+    const brandedFetch = function (this: unknown) {
+      if (this !== globalThis) {
+        throw new TypeError("Failed to execute 'fetch' on 'Window': Illegal invocation");
+      }
+      return Promise.resolve(jsonResponse({ ok: true }));
+    };
+    vi.stubGlobal("fetch", brandedFetch);
+
+    try {
+      const client = new ApiClient({ baseUrl: "https://api.example.test" });
+      await expect(client.request("/public", { auth: false })).resolves.toEqual({
+        ok: true,
+      });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("parses backend field errors into a typed ApiError", async () => {
     const client = new ApiClient({
       baseUrl: "https://api.example.test",

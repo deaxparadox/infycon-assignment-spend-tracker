@@ -27,7 +27,7 @@ export class ApiClient {
     onSessionCleared?: () => void;
   } = {}) {
     this.baseUrl = options.baseUrl ?? getApiBaseUrl();
-    this.fetchImplementation = options.fetchImplementation ?? fetch;
+    this.fetchImplementation = options.fetchImplementation ?? fetch.bind(globalThis);
     this.onSessionCleared = options.onSessionCleared ?? (() => undefined);
   }
 
