@@ -1,6 +1,6 @@
 # FEAT-20260922-0842 — Portable container stack
 
-- **Status:** Proposed — awaiting explicit approval
+- **Status:** Implemented
 - **Working branch:** `main`
 - **Base branch:** `main`
 - **ADR:** `docs/adr/0002-portable-container-runtime.md`
@@ -104,3 +104,22 @@ Confirm the design addresses both causes behind the request: runnable container 
 ## Commit boundary
 
 One coherent commit will contain the dependency metadata, backend/frontend image definitions, Compose configuration, environment example, Next.js standalone setting, README Docker documentation, spec completion, and in-place TODO completion.
+
+## Implementation results
+
+- Used `docker init` independently for the detected Python and Node applications, then adapted its scaffolds to the approved monorepo design and removed the generated per-service Compose and README files.
+- Added exact Python 3.12.2 and Node 22.18.0 multi-stage/runtime definitions with fixed non-root users, allowlisted build contexts, exec-form startup commands, and no writable host bind mounts.
+- Added and locked Gunicorn 26.2.0 without installing it locally, set Next.js standalone output, and copied only the standalone runtime and public/static assets into the frontend runtime image.
+- Added a root Compose environment contract and topology with a one-shot migration service, successful-completion and health dependencies, standard-library health checks, explicit fail-fast configuration interpolation, and a Docker-managed SQLite volume.
+- Documented Windows/Linux operation, lifecycle commands, public build-time frontend configuration, destructive volume reset behavior, SQLite scaling limits, and production security requirements.
+- Per direct instruction, no dependency install, automated test, image build, Compose parse/build/start, health check, or container smoke test was executed. The new definitions remain execution-unverified.
+
+## Recursive check results
+
+### Lateral spread
+
+Searched application settings, runtime entry points, environment examples, Compose configuration, Dockerfiles, and README commands. Development-only `runserver` and local SQLite paths remain confined to the non-container development instructions. Container runtime paths consistently use `config.settings.base`, `/var/lib/spend-tracker/db.sqlite3`, Gunicorn, the named volume, and the public `NEXT_PUBLIC_API_URL`. No Compose host-user mapping, writable source bind mount, duplicated migration startup, or internal backend hostname is used as the browser API origin.
+
+### Causal depth
+
+The artifacts address both the requested runnable packaging and the underlying Windows/Linux permission concern: immutable Linux images run as internal non-root users while Docker owns mutable database storage. Source review also covered frontend build-time URL embedding, migration failure propagation, backend readiness ordering, persistent SQLite placement, empty-volume ownership inherited from the image mountpoint, and signal forwarding through exec-form commands plus Compose `init`. No additional contributing requirement was found in the inspected container scope; runtime behavior was intentionally not validated.

@@ -1,0 +1,86 @@
+x-backend-build: &backend-build
+  context: ./backend
+  dockerfile: Dockerfile
+
+x-backend-environment: &backend-environment
+  DJANGO_SETTINGS_MODULE: config.settings.base
+  DJANGO_SECRET_KEY: "${DJANGO_SECRET_KEY:?Set DJANGO_SECRET_KEY in .env}"
+  DJANGO_ALLOWED_HOSTS: "${DJANGO_ALLOWED_HOSTS:?Set DJANGO_ALLOWED_HOSTS in .env}"
+  FRONTEND_ORIGIN: "${FRONTEND_ORIGIN:?Set FRONTEND_ORIGIN in .env}"
+  SQLITE_PATH: /var/lib/spend-tracker/db.sqlite3
+  ACCESS_TOKEN_MINUTES: "${ACCESS_TOKEN_MINUTES:?Set ACCESS_TOKEN_MINUTES in .env}"
+  REFRESH_TOKEN_DAYS: "${REFRESH_TOKEN_DAYS:?Set REFRESH_TOKEN_DAYS in .env}"
+  REFRESH_COOKIE_NAME: "${REFRESH_COOKIE_NAME:?Set REFRESH_COOKIE_NAME in .env}"
+  REFRESH_COOKIE_PATH: "${REFRESH_COOKIE_PATH:?Set REFRESH_COOKIE_PATH in .env}"
+  REFRESH_COOKIE_SAMESITE: "${REFRESH_COOKIE_SAMESITE:?Set REFRESH_COOKIE_SAMESITE in .env}"
+  REFRESH_COOKIE_SECURE: "${REFRESH_COOKIE_SECURE:?Set REFRESH_COOKIE_SECURE in .env}"
+  DJANGO_SECURE_SSL_REDIRECT: "${DJANGO_SECURE_SSL_REDIRECT:?Set DJANGO_SECURE_SSL_REDIRECT in .env}"
+  DJANGO_SECURE_HSTS_SECONDS: "${DJANGO_SECURE_HSTS_SECONDS:?Set DJANGO_SECURE_HSTS_SECONDS in .env}"
+  SESSION_COOKIE_SECURE: "${SESSION_COOKIE_SECURE:?Set SESSION_COOKIE_SECURE in .env}"
+  CSRF_COOKIE_SECURE: "${CSRF_COOKIE_SECURE:?Set CSRF_COOKIE_SECURE in .env}"
+  CSRF_COOKIE_SAMESITE: "${CSRF_COOKIE_SAMESITE:?Set CSRF_COOKIE_SAMESITE in .env}"
+
+services:
+  migrate:
+    build: *backend-build
+    image: spend-tracker-backend:local
+    command: ["python", "manage.py", "migrate", "--noinput"]
+    environment: *backend-environment
+    init: true
+    restart: "no"
+    volumes:
+      - spend-tracker-data:/var/lib/spend-tracker
+
+  backend:
+    build: *backend-build
+    image: spend-tracker-backend:local
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment: *backend-environment
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/auth/csrf', timeout=2)
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    init: true
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    volumes:
+      - spend-tracker-data:/var/lib/spend-tracker
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: "${NEXT_PUBLIC_API_URL:?Set NEXT_PUBLIC_API_URL in .env}"
+    image: spend-tracker-frontend:local
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      NEXT_PUBLIC_API_URL: "${NEXT_PUBLIC_API_URL:?Set NEXT_PUBLIC_API_URL in .env}"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch('http://127.0.0.1:3000/login').then((response) => { if (!response.ok) process.exit(1) }).catch(() => process.exit(1))
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    init: true
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+volumes:
+  spend-tracker-data:

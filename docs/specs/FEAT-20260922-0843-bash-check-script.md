@@ -1,6 +1,6 @@
 # FEAT-20260922-0843 — Bash verification script
 
-- **Status:** Proposed — awaiting explicit approval
+- **Status:** Approved
 - **Working branch:** `main`
 - **Base branch:** `main`
 

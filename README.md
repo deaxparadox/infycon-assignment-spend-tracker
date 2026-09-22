@@ -26,6 +26,7 @@ frontend/
   src/features/auth/       session lifecycle and authentication UI
   src/features/expenses/   expense and summary UI
   src/lib/                 API client, contracts, config, money, and URL helpers
+compose.yaml               portable local container topology
 scripts/check.ps1          complete local verification entry point
 docs/                      approved architecture records and implementation specs
 ```
@@ -34,11 +35,11 @@ The backend separates HTTP validation, selectors, and business services. The fro
 
 ## Supported toolchain
 
-This repository was built and verified with:
+This repository pins the following toolchain:
 
 - Python 3.12.2 (pinned by `.python-version`)
 - Node.js 22.18.0 and npm 11.19.1
-- Django 5.2.17, Django REST Framework 3.17.2, Simple JWT 5.5.1, and django-cors-headers 4.9.0
+- Django 5.2.17, Django REST Framework 3.17.2, Simple JWT 5.5.1, django-cors-headers 4.9.0, and Gunicorn 26.2.0
 - Next.js 16.3.5, React 19.2.8, TypeScript 5.9.3, and Vitest 5.0.1
 
 Python dependencies are fully listed in `backend/requirements.lock`; JavaScript dependencies are locked by `frontend/package-lock.json`.
@@ -76,7 +77,50 @@ npm run dev
 
 Open `http://localhost:3000/register`. Registration returns to sign-in; after signing in, `/summary`, `/expenses`, and `/expenses/new` are protected URL routes.
 
+## Run with Docker Compose
+
+Use Docker Engine on Linux or Docker Desktop configured for Linux containers on Windows. The stack uses immutable images and a Docker-managed volume, so it does not need host UID/GID variables or writable source bind mounts.
+
+Copy the Compose environment example from the repository root:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+```bash
+cp .env.example .env
+```
+
+Set a strong, unique `DJANGO_SECRET_KEY` in `.env`; it is intentionally blank in the example so Compose fails before building if it is not supplied. The remaining example values run the stack over localhost HTTP and are not internet-production settings.
+
+Build and start all services:
+
+```console
+docker compose up --build
+```
+
+Compose first runs migrations as a one-shot service, then starts the API after migration success, and finally starts the frontend after the API is healthy. Open `http://localhost:3000`; the API is exposed at `http://localhost:8000`.
+
+Operational commands:
+
+```console
+docker compose logs --follow
+docker compose down
+```
+
+SQLite is stored in the named `spend-tracker-data` volume and survives `docker compose down`. The following command also deletes that volume and permanently removes its database, so use it only when a full local reset is intended:
+
+```console
+docker compose down --volumes
+```
+
+The frontend embeds `NEXT_PUBLIC_API_URL` during its image build. Change that value in `.env` and rebuild the frontend image whenever its public API origin changes. Do not use the internal `http://backend:8000` hostname for this value: browser requests originate outside the Compose network.
+
+The backend and frontend run as non-root users inside their Linux images. Docker owns the database volume and its permissions, which avoids Windows/Linux host ownership differences. SQLite limits this topology to one backend replica; move to PostgreSQL before horizontal scaling.
+
 ## Configuration
+
+The root `.env.example` is the Compose contract. `compose.yaml` requires every interpolated value explicitly and uses the fixed internal database path `/var/lib/spend-tracker/db.sqlite3`.
 
 `frontend/.env.example` contains the required public API origin:
 
@@ -204,6 +248,8 @@ $env:NEXT_PUBLIC_API_URL = "http://localhost:8000"
 .\scripts\check.ps1
 ```
 
+The application checks above passed before the later containerization work. Per the repository owner's instruction, the Dockerfiles and Compose topology were source-reviewed but were not built or executed.
+
 ## Design decisions and trade-offs
 
 - Django and DRF provide mature user, password-validation, ORM, migration, permission, and API primitives while keeping business rules in small application modules.
@@ -223,10 +269,10 @@ $env:NEXT_PUBLIC_API_URL = "http://localhost:8000"
 
 ## Deployment notes
 
-Deployment is intentionally left to the repository owner. A production deployment must supply every `config.settings.base` environment variable, use a strong secret, exact public origins/hosts, HTTPS, secure cookies, HTTPS redirect/HSTS values appropriate to the proxy, persistent database storage (or PostgreSQL), migrations during release, and `NEXT_PUBLIC_API_URL` at frontend build time.
+Deployment is intentionally left to the repository owner. The Compose file is production-shaped but its example values deliberately use localhost HTTP. An internet-facing deployment must supply every `config.settings.base` environment variable, use a strong secret, exact public origins/hosts, TLS termination, secure cookies, HTTPS redirect/HSTS values appropriate to the proxy, database backups (or PostgreSQL), migrations during release, and `NEXT_PUBLIC_API_URL` at frontend build time.
 
 ## AI-use disclosure
 
 I used OpenAI Codex to help plan the architecture, scaffold the projects, implement code, and propose tests and documentation.
 I reviewed the generated work against the requirements and installed versions, then changed or rejected suggestions such as JSON-exposed refresh tokens, floating-point money handling, and hidden non-URL filter state.
-I ran the complete automated checks and a live cross-stack HTTP smoke flow before submission.
+I ran the complete automated checks and a live cross-stack HTTP smoke flow for the application; later Docker and shell additions were source-reviewed only at the repository owner's request.

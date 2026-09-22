@@ -1,0 +1,6 @@
+*
+!requirements.lock
+!src/
+!src/**
+src/**/__pycache__/
+src/**/*.py[cod]
