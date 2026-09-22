@@ -283,6 +283,8 @@ The application checks above passed before the later containerization work. Per 
 
 Deployment is intentionally left to the repository owner. The Compose file is production-shaped but its example values deliberately use localhost HTTP. An internet-facing deployment must supply every `config.settings.base` environment variable, use a strong secret, exact public origins/hosts, TLS termination, secure cookies, HTTPS redirect/HSTS values appropriate to the proxy, database backups (or PostgreSQL), migrations during release, and `NEXT_PUBLIC_API_URL` at frontend build time.
 
+The live deployment for this assignment runs the frontend on Vercel and the backend on Render's free tier, keeping SQLite as specified by the brief rather than adding a hosted database. Render's free web services have an ephemeral filesystem: it is discarded on every redeploy, restart, **and** inactivity spin-down (after roughly 15 idle minutes), not only on code changes. `python manage.py seed_demo_data`, run alongside `migrate` on every start, recreates a fixed demo account with sample expenses each time this happens, so the deployment is always demoable without registering first — sign in with `demo@example.com` / `CorrectHorseBattery9!` (or whatever `DEMO_ACCOUNT_PASSWORD` is set to). Any account registered directly against the live deployment, and its expenses, will be lost the next time the free instance restarts or wakes from sleep; this is expected behavior for this hosting tier, not a bug.
+
 ## AI-use disclosure
 
 I used OpenAI Codex to help plan the architecture, scaffold the projects, implement code, and propose tests and documentation.
